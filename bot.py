@@ -38,7 +38,7 @@ REFERRAL_REWARD = 100
 
 # URL, куда вы загрузите ваши index.html, style.css, app.js
 # (Пока можно оставить так, но для работы /profile его нужно будет заменить)
-WEB_APP_URL = "https://community.helpers.ltd/" 
+WEB_APP_URL = "https://www.helpers.ltd/" 
 
 # Адрес для запуска локального веб-сервера
 WEB_SERVER_HOST = "127.0.0.1"
