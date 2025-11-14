@@ -40,7 +40,7 @@ REFERRAL_REWARD = 100  # Баллов ("Токенов") за реферала
 # --- НОВЫЕ НАСТРОЙКИ ВЕБ-СЕРВЕРА ---
 # URL, куда вы загрузите ваши index.html, style.css, app.js
 # !!! ЗАМЕНИТЕ ЭТОТ URL, КОГДА ЗАГРУЗИТЕ ФАЙЛЫ НА ХОСТИНГ !!!
-WEB_APP_URL = "https://your-domain.com/index.html" 
+WEB_APP_URL = "https://romanov-d.github.io/HelpersCommunityBot/" 
 
 # Адрес для запуска локального веб-сервера
 WEB_SERVER_HOST = "127.0.0.1"  # "localhost"
