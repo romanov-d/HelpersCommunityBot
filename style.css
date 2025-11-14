@@ -1,0 +1,107 @@
+/* Базовые сбросы и общие стили */
+body {
+    margin: 0;
+    padding: 20px; /* Отступы от краев мини-приложения */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    color: var(--tg-theme-text-color); /* Цвет текста из темы Telegram */
+    background-color: var(--tg-theme-bg-color); /* Цвет фона из темы Telegram */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Плавный переход при смене темы */
+}
+
+/* Контейнер для центрирования и ограничения ширины */
+.main-container {
+    max-width: 600px; /* Максимальная ширина для больших экранов */
+    margin: 0 auto; /* Центрирование */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Отступы между карточками */
+}
+
+/* Карточка (основной блок) */
+.card {
+    background-color: var(--tg-theme-secondary-bg-color); /* Вторичный цвет фона из темы Telegram */
+    border-radius: 12px; /* Скругленные углы */
+    padding: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Отступы между элементами внутри карточки */
+}
+
+.card h2 {
+    margin: 0 0 10px 0; /* Отступ снизу для заголовка */
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+}
+
+/* Стили для отображения баланса токенов */
+.balance-display {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--tg-theme-link-color); /* Используем цвет ссылки для акцента */
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 8px;
+    background-color: var(--tg-theme-bg-color); /* Более светлый или темный фон для контраста */
+}
+
+/* Поле ввода для реферальной ссылки */
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--tg-theme-hint-color); /* Цвет границы из темы Telegram */
+    border-radius: 8px;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-size: 16px;
+    box-sizing: border-box; /* Важно для корректного расчета ширины */
+    -webkit-appearance: none; /* Для iOS */
+    appearance: none; /* Для других браузеров */
+    outline: none; /* Убираем стандартный outline при фокусе */
+}
+
+input[type="text"]:focus {
+    border-color: var(--tg-theme-link-color); /* Цвет ссылки при фокусе */
+}
+
+/* Кнопка "Копировать" */
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--tg-theme-button-color); /* Цвет кнопки из темы Telegram */
+    color: var(--tg-theme-button-text-color); /* Цвет текста кнопки из темы Telegram */
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+}
+
+button:hover {
+    background-color: var(--tg-theme-button-color-hover, #68a4ee); /* Немного темнее при наведении, fallback */
+}
+
+button:active {
+    background-color: var(--tg-theme-button-color-active, #4b80d4); /* Еще темнее при нажатии, fallback */
+}
+
+
+/* Информация в футере */
+.footer-info {
+    text-align: center;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color); /* Используем цвет подсказки для менее важной информации */
+    margin-top: 20px;
+}
+
+.footer-info span {
+    font-weight: 600;
+    color: var(--tg-theme-text-color); /* Более яркий цвет для даты */
+}

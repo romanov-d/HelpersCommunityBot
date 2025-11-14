@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="card">
+            <h2>💎 Мои Токены</h2>
+            <div class="balance-display" id="token-balance">
+                ...
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🤝 Моя Реф-ссылка</h2>
+            <p>Ваша ссылка для приглашения друзей:</p>
+            <input type="text" id="ref-link" readonly>
+            <button id="copy-button">Копировать</button>
+        </div>
+        
+        <div class="footer-info">
+            Вы в сообществе с: <span id="join-date">...</span>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
