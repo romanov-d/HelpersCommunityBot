@@ -150,60 +150,97 @@ class AnketStates(StatesGroup):
     waiting_for_cv = State()
 
 
-# --- 2. Хэндлер на команду /start (Ловит рефералов) ---
+# --- 2. Хэндлер на команду /start (УМНЫЙ) ---
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
-    await state.clear()
+    await state.clear() # Сбрасываем FSM на всякий случай
     
-    referrer_id = None
-    try:
-        # Пытаемся достать ID из команды (например, /start 12345678)
-        referrer_id = int(message.text.split()[1])
-        if referrer_id == message.from_user.id:
-            referrer_id = None # Нельзя пригласить самого себя
-    except (IndexError, ValueError, TypeError):
-        pass # У юзера обычный /start, без реферала
-
-    # Добавляем пользователя и его реферера в БД
+    # 1. ПРОВЕРЯЕМ ЮЗЕРА В БД
     async with aiosqlite.connect(DB_FILE) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT status FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
+            user_status_row = await cursor.fetchone()
+
+    user_status = user_status_row['status'] if user_status_row else None
+    
+    # 2. ЛОВИМ РЕФЕРАЛА (если он есть)
+    referrer_id = None
+    # Мы регистрируем реферала ТОЛЬКО если юзер действительно новый (user_status is None)
+    if not user_status: 
         try:
-            # balance и referral_count по умолчанию 0, так что их не указываем
-            await db.execute(
-                "INSERT INTO users (user_id, username, join_date, referrer_id) VALUES (?, ?, ?, ?)",
-                (message.from_user.id, message.from_user.username, datetime.now(), referrer_id)
-            )
-            await db.commit()
-        except aiosqlite.IntegrityError:
-            pass # Пользователь уже есть, не обновляем реферера
+            # Пытаемся достать ID из команды (например, /start 12345678)
+            referrer_id = int(message.text.split()[1])
+            if referrer_id == message.from_user.id:
+                referrer_id = None # Нельзя пригласить самого себя
+        except (IndexError, ValueError, TypeError):
+            pass # У юзера обычный /start, без реферала
 
+    # 3. РЕШАЕМ, ЧТО ПОКАЗАТЬ
     
-    start_button = InlineKeyboardButton(
-        text="➡️ Подать заявку",
-        callback_data="start_anket"
-    )
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[start_button]])
-    
-    # Отправляем фото из папки
-    photo_file = FSInputFile("welcome.jpg") 
-
-    try:
-        await message.answer_photo(
-            photo=photo_file,
-            caption=(
-                "Здравствуйте!\n\n"
-                "Вы подаете заявку на вступление в Helpers Community — закрытое "
-                "профессиональное сообщество ассистентов.\n\n"
-                "Чтобы поддерживать высокое качество нетворкинга и контента, "
-                "мы не пускаем в чат ботов, спам и случайных людей. "
-                "Для входа необходимо пройти быструю верификацию.\n\n"
-                "Это займет 2 минуты.\n"
-                "Готовы начать?"
-            ),
-            reply_markup=keyboard
+    if user_status == 'approved':
+        # --- Сценарий С: Он уже в клубе ---
+        await message.answer(
+            f"Привет, {message.from_user.first_name}! 👋\n\n"
+            "Вы уже являетесь участником Helpers Community.\n\n"
+            "Воспользуйтесь командами из меню, чтобы:"
+            "\n• Посмотреть свой профиль и токены (/profile)"
+            "\n• Получить реферальную ссылку (/myrefs)"
         )
-    except Exception as e:
-        logging.error(f"Ошибка при отправке фото: {e}. Убедитесь, что 'welcome.jpg' лежит в папке.")
-        await message.answer("Ошибка: не могу загрузить стартовое фото. Свяжитесь с админом.")
+    
+    elif user_status == 'rejected':
+        # --- Сценарий D: Ему отказали ---
+        await message.answer("Здравствуйте. К сожалению, ранее ваша заявка на вступление была отклонена.")
+
+    elif user_status == 'pending':
+        # --- Сценарий B: Он ждет ---
+        await message.answer(
+            "Здравствуйте.\n\n"
+            "Ваша заявка все еще находится на ручной проверке. "
+            "Я напишу вам, как только будет решение."
+        )
+    
+    else: 
+        # --- Сценарий A: Новый юзер (user_status is None или 'new') ---
+        
+        # Регистрируем его
+        async with aiosqlite.connect(DB_FILE) as db:
+            try:
+                await db.execute(
+                    "INSERT INTO users (user_id, username, join_date, referrer_id) VALUES (?, ?, ?, ?)",
+                    (message.from_user.id, message.from_user.username, datetime.now(), referrer_id)
+                )
+                await db.commit()
+            except aiosqlite.IntegrityError: 
+                # Он уже есть, но статус 'new'. Обновляем реферера, если он пришел по ссылке.
+                if referrer_id:
+                    await db.execute("UPDATE users SET referrer_id = ? WHERE user_id = ? AND referrer_id IS NULL", (referrer_id, message.from_user.id))
+                    await db.commit()
+        
+        # Показываем воронку
+        start_button = InlineKeyboardButton(
+            text="➡️ Подать заявку",
+            callback_data="start_anket"
+        )
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[start_button]])
+        photo_file = FSInputFile("welcome.jpg") 
+        try:
+            await message.answer_photo(
+                photo=photo_file,
+                caption=(
+                    "Здравствуйте!\n\n"
+                    "Вы подаете заявку на вступление в Helpers Community — закрытое "
+                    "профессиональное сообщество ассистентов.\n\n"
+                    "Чтобы поддерживать высокое качество нетворкинга и контента, "
+                    "мы не пускаем в чат ботов, спам и случайных людей. "
+                    "Для входа необходимо пройти быструю верификацию.\n\n"
+                    "Это займет 2 минуты.\n"
+                    "Готовы начать?"
+                ),
+                reply_markup=keyboard
+            )
+        except Exception as e:
+            logging.error(f"Ошибка при отправке фото: {e}. Убедитесь, что 'welcome.jpg' лежит в папке.")
+            await message.answer("Ошибка: не могу загрузить стартовое фото. Свяжитесь с админом.")
 
 
 # --- 3. Хэндлер на нажатие кнопки "Подать заявку" ---
@@ -467,8 +504,9 @@ async def cmd_admin_stats(message: Message):
 @router.message(Command("myrefs"))
 async def cmd_my_referrals(message: Message):
     try:
-        # Получаем имя бота (чтобы ссылка была красивой)
-        bot_info = await bot.get_me()
+        # --- ИСПРАВЛЕНИЕ ЗДЕСЬ: ---
+        # Мы берем .bot не из "воздуха", а из самого 'message'
+        bot_info = await message.bot.get_me() 
         bot_username = bot_info.username
         
         referral_link = f"https://t.me/{bot_username}?start={message.from_user.id}"
@@ -496,7 +534,7 @@ async def cmd_my_referrals(message: Message):
         await message.answer(text, parse_mode="Markdown")
     except Exception as e:
         logging.error(f"Ошибка в /myrefs: {e}")
-        await message.answer("Произошла ошибка при генерации реферальной ссылки.")
+        await message.answer("Произошла ошибка при генерации реферальной ссылки. Пожалуйста, попробуйте чуть позже.")
 
 # --- НОВЫЙ ХЭНДЛЕР: Кнопка "Мой Профиль" ---
 @router.message(Command("profile"))
