@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // !!! ВАЖНО: Мы заменим этот URL, когда настроим bot.py !!!
     // Это адрес, по которому мини-приложение будет "стучаться" к боту
-    const BACKEND_URL = "https://YOUR_BOT_BACKEND_URL/get_user_data";
+    const BACKEND_URL = "http://91.220.109.239:8080/get_user_data";
 
     // --- 4. Функция: Запрос данных у бота ---
 
